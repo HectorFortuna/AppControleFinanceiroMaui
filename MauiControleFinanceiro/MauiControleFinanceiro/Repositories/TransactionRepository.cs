@@ -1,18 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Transactions;
+﻿using LiteDB;
+using MauiControleFinanceiro.Models;
+
 
 namespace MauiControleFinanceiro.Repositories
 {
     internal class TransactionRepository : ITransactionRepository
     {
-        public TransactionRepository() { }
-        public List<Transaction> GetAll() { }
-        public void Add(Transaction transaction) { }
-        public void Update(Transaction transaction) { }
-        public void Delete(Transaction transaction) { }
+        private readonly LiteDatabase _database;
+        private readonly string collectionName = "transactions";
+        public TransactionRepository(LiteDatabase database) 
+        {
+            _database = database;
+        }
+        public List<Transaction> GetAll() 
+        {
+            return _database
+                .GetCollection<Transaction>(collectionName)
+                .Query()
+                .OrderByDescending(a=>a.Date)
+                .ToList() ;
+        }
+        public void Add(Transaction transaction) 
+        {
+            var col = _database.GetCollection<Transaction>(collectionName);
+            col.Insert(transaction);
+            col.EnsureIndex(a=>a.Date);
+
+        }
+        public void Update(Transaction transaction) 
+        {
+            var col = _database.GetCollection<Transaction>(collectionName);
+            col.Update(transaction);
+        }
+        public void Delete(Transaction transaction) 
+        {
+            var col = _database.GetCollection<Transaction>(collectionName);
+            col.Delete(transaction.Id);
+        }
     }
 }
